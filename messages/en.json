@@ -1,0 +1,20 @@
+{
+  "Index": {
+    "title": "KrishiSetu",
+    "headline": "Smarter Decisions. Better Farming. Better Markets.",
+    "subheading": "KrishiSetu combines crop intelligence, agricultural market information, digital farm records and direct farmer-buyer connections in one platform.",
+    "getStarted": "Get Started",
+    "exploreMarket": "Explore Market"
+  },
+  "Navigation": {
+    "home": "Home",
+    "advisory": "Advisory",
+    "market": "Market",
+    "records": "Farm Records",
+    "marketplace": "Marketplace",
+    "howItWorks": "How It Works",
+    "about": "About",
+    "login": "Login",
+    "getStarted": "Get Started"
+  }
+}
