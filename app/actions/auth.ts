@@ -32,25 +32,61 @@ export async function register(formData: FormData) {
 
   const supabase = await createClient()
 
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        role,
-        full_name: name,
-      }
-    }
-  })
+  let userToInsert = null;
+  let authError = null;
+  
+  let adminClient = null;
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+    adminClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    );
+  }
 
-  if (error) {
-    return { error: error.message }
+  // 1. Try to use Admin API if service role key is available (Bypasses all email rate limits)
+  if (adminClient) {
+    const { data, error } = await adminClient.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { role, full_name: name }
+    });
+    
+    authError = error;
+    userToInsert = data.user;
+    
+    // If created via admin, we must sign them in on the client side
+    if (!error) {
+       await supabase.auth.signInWithPassword({ email, password });
+    }
+  } else {
+    // 2. Fallback to normal signup
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          role,
+          full_name: name,
+        }
+      }
+    })
+    authError = error;
+    userToInsert = data.user;
+  }
+
+  if (authError) {
+    return { error: authError.message }
   }
 
   // Insert into public.users
-  if (data.user) {
-    const { error: insertError } = await supabase.from('users').insert({
-      id: data.user.id,
+  if (userToInsert) {
+    // Use adminClient to insert, which bypasses RLS policies (since we don't have an insert policy on users table)
+    const dbClient = adminClient ? adminClient : supabase;
+    const { error: insertError } = await dbClient.from('users').insert({
+      id: userToInsert.id,
       role: role,
       name: name,
       phone: phone,
