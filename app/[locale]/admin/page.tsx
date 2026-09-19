@@ -62,7 +62,7 @@ export default async function AdminDashboardPage() {
           <div className="p-0">
             {pendingBuyers && pendingBuyers.length > 0 ? (
               <ul className="divide-y">
-                {pendingBuyers.map(buyer => (
+                {pendingBuyers.map((buyer: any) => (
                   <li key={buyer.id} className="p-4 flex justify-between items-center hover:bg-gray-50">
                     <div>
                       <p className="font-bold text-gray-900">{buyer.business_name}</p>

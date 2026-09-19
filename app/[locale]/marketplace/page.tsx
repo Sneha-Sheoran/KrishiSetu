@@ -49,7 +49,7 @@ export default async function MarketplacePage() {
       {/* Listings Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {listings && listings.length > 0 ? (
-          listings.map((listing) => (
+          listings.map((listing: any) => (
             <div key={listing.id} className="bg-white rounded-2xl border border-emerald-100 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col">
               <div className="bg-emerald-50 p-6 border-b border-emerald-100 flex justify-between items-start">
                 <div>

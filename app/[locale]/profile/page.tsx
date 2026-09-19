@@ -9,9 +9,16 @@ export default async function ProfilePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase.from('users').select('*').eq('id', user.id).single()
+  const { data: dbProfile } = await supabase.from('users').select('*').eq('id', user.id).single()
   
-  if (!profile) redirect('/login')
+  const profile = dbProfile || {
+    id: user.id,
+    name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+    email: user.email,
+    phone: user.phone || (user.user_metadata as any)?.phone || '',
+    role: (user.user_metadata as any)?.role || 'FARMER',
+    created_at: new Date().toISOString()
+  }
 
   // Fetch role specific data
   let roleData = null

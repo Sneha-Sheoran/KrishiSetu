@@ -56,7 +56,7 @@ export default function MessagingPage({ params }: { params: Promise<{ id: string
           table: 'messages',
           filter: `conversation_id=eq.${convId}`,
         },
-        (payload) => {
+        (payload: any) => {
           setMessages((current) => [...current, payload.new])
         }
       )

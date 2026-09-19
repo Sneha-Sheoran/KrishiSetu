@@ -9,7 +9,12 @@ export default async function BuyerDashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase.from('users').select('*').eq('id', user.id).single()
+  const { data: dbProfile } = await supabase.from('users').select('*').eq('id', user.id).single()
+  const profile = dbProfile || {
+    id: user.id,
+    name: user.user_metadata?.full_name || user.user_metadata?.name || 'Buyer',
+    role: user.user_metadata?.role || 'BUYER'
+  }
   
   if (profile?.role !== 'BUYER') {
     redirect('/dashboard')

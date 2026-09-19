@@ -29,7 +29,7 @@ export default async function MyListingsPage() {
 
       <div className="space-y-4">
         {listings && listings.length > 0 ? (
-          listings.map(listing => (
+          listings.map((listing: any) => (
             <div key={listing.id} className="bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm flex flex-col md:flex-row justify-between md:items-center gap-4">
               <div>
                 <div className="flex items-center gap-3 mb-2">

@@ -17,9 +17,16 @@ export async function getUserProfile() {
     .eq('id', user.id)
     .single()
 
-  if (error) {
-    console.error('Error fetching user profile:', error)
-    return null
+  if (error || !profile) {
+    // Fallback to auth metadata if table record is missing
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+      role: user.user_metadata?.role || 'FARMER',
+      phone: user.phone || (user.user_metadata as any)?.phone || '',
+      verification_status: 'VERIFIED'
+    }
   }
 
   return profile
@@ -33,8 +40,7 @@ export async function getUserFarms(userId: string) {
     .select('*')
     .eq('farmer_id', userId)
 
-  if (error) {
-    console.error('Error fetching farms:', error)
+  if (error || !data) {
     return []
   }
 

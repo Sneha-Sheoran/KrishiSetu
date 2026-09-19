@@ -1,8 +1,27 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createLocalServerClient } from '@/lib/localAuthDb'
 
-export async function createClient() {
+function isSupabaseConfigured(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  return !!(
+    url &&
+    key &&
+    url.trim() !== '' &&
+    key.trim() !== '' &&
+    !url.includes('placeholder') &&
+    !url.includes('dummy') &&
+    url.startsWith('http')
+  )
+}
+
+export async function createClient(): Promise<any> {
   const cookieStore = await cookies()
+
+  if (!isSupabaseConfigured()) {
+    return createLocalServerClient(cookieStore)
+  }
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,9 +37,7 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            // Ignored when called from Server Component
           }
         },
       },

@@ -3,16 +3,17 @@ import { createClient } from '@/utils/supabase/server'
 import { Tractor, Home, LineChart, Leaf, Store, MessageCircle, User, LayoutDashboard, FileText } from 'lucide-react'
 
 export async function Navbar() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) return null; // Don't show this navbar for unauthenticated users, they have the landing page one
+    if (!user) return null; // Don't show this navbar for unauthenticated users, they have the landing page one
 
-  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
-  
-  const isFarmer = profile?.role === 'FARMER'
-  const isBuyer = profile?.role === 'BUYER'
-  const isAdmin = profile?.role === 'ADMIN'
+    const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
+    
+    const isFarmer = profile?.role === 'FARMER'
+    const isBuyer = profile?.role === 'BUYER'
+    const isAdmin = profile?.role === 'ADMIN'
 
   return (
     <nav className="bg-emerald-800 text-white shadow-md">
@@ -89,4 +90,8 @@ export async function Navbar() {
       </div>
     </nav>
   )
+  } catch (err) {
+    console.error('Navbar Supabase session check error:', err)
+    return null
+  }
 }

@@ -29,7 +29,7 @@ export default async function MessagesInboxPage() {
 
       <div className="space-y-4">
         {conversations && conversations.length > 0 ? (
-          conversations.map(conv => (
+          conversations.map((conv: any) => (
             <Link key={conv.id} href={`/messages/${conv.id}`} className="block bg-white p-6 rounded-2xl border border-emerald-100 shadow-sm hover:border-emerald-300 transition group">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-4">
