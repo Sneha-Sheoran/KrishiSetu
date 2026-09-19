@@ -15,6 +15,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Match only internationalized pathnames
-  matcher: ['/', '/(hi|en)/:path*', '/((?!_next|_vercel|.*\\..*).*)']
+  // Match only internationalized pathnames, skipping api, _next, static files
+  matcher: ['/', '/(hi|en)/:path*', '/((?!api|_next|_vercel|.*\\..*).*)']
 };

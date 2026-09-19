@@ -3,21 +3,34 @@ import { persist, createJSONStorage, StateStorage } from 'zustand/middleware'
 import { openDB } from 'idb'
 
 // Custom IndexedDB storage for Zustand
-const dbPromise = openDB('krishisetu-records-db', 1, {
-  upgrade(db) {
-    db.createObjectStore('keyval')
-  },
-})
+let dbPromise: Promise<any> | null = null;
+const getDB = () => {
+  if (typeof window === 'undefined') return null;
+  if (!dbPromise) {
+    dbPromise = openDB('krishisetu-records-db', 1, {
+      upgrade(db) {
+        db.createObjectStore('keyval')
+      },
+    });
+  }
+  return dbPromise;
+}
 
 const idbStorage: StateStorage = {
   getItem: async (name: string): Promise<string | null> => {
-    return (await dbPromise).get('keyval', name) || null
+    const db = getDB();
+    if (!db) return null;
+    return (await db).get('keyval', name) || null
   },
   setItem: async (name: string, value: string): Promise<void> => {
-    await (await dbPromise).put('keyval', value, name)
+    const db = getDB();
+    if (!db) return;
+    await (await db).put('keyval', value, name)
   },
   removeItem: async (name: string): Promise<void> => {
-    await (await dbPromise).delete('keyval', name)
+    const db = getDB();
+    if (!db) return;
+    await (await db).delete('keyval', name)
   },
 }
 
