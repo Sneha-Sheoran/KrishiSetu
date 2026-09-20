@@ -25,7 +25,7 @@ export async function getUserProfile() {
       name: user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User',
       role: user.user_metadata?.role || 'FARMER',
       phone: user.phone || (user.user_metadata as any)?.phone || '',
-      verification_status: 'VERIFIED'
+      verification_status: 'PENDING'
     }
   }
 

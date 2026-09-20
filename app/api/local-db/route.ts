@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 
 export async function POST(req: NextRequest) {
+  if (process.env.NODE_ENV === 'production') {
+    return new NextResponse(null, { status: 404 })
+  }
+
   try {
     const { table, action, data, filter } = await req.json()
     const supabase = await createClient()
@@ -17,6 +21,12 @@ export async function POST(req: NextRequest) {
         for (const key of Object.keys(filter)) {
           query = query.eq(key, filter[key])
         }
+      }
+      if (data?.order?.column) {
+        query = query.order(data.order.column, { ascending: data.order.ascending ?? true })
+      }
+      if (typeof data?.limit === 'number') {
+        query = query.limit(data.limit)
       }
       if (data?.single) {
         const res = await query.single()

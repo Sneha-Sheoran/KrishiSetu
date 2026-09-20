@@ -17,6 +17,7 @@ export default async function ProfilePage() {
     email: user.email,
     phone: user.phone || (user.user_metadata as any)?.phone || '',
     role: (user.user_metadata as any)?.role || 'FARMER',
+    verification_status: 'PENDING',
     created_at: new Date().toISOString()
   }
 

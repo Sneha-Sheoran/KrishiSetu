@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { createLocalServerClient } from '@/lib/localAuthDb'
 
@@ -20,6 +20,9 @@ export async function createClient(): Promise<any> {
   const cookieStore = await cookies()
 
   if (!isSupabaseConfigured()) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Supabase is not configured. Local DB shim is disabled in production.')
+    }
     return createLocalServerClient(cookieStore)
   }
 

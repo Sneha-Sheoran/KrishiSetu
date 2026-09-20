@@ -1,6 +1,6 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-function isSupabaseConfigured(): boolean {
+export function isSupabaseConfigured(): boolean {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   return !!(
@@ -19,6 +19,9 @@ class ClientQueryBuilder {
   private filters: Record<string, any> = {}
   private selectFields = '*'
   private isSingle = false
+  private limitValue: number | null = null
+  private sortColumn: string | null = null
+  private sortAscending = true
 
   constructor(tableName: string) {
     this.tableName = tableName
@@ -34,13 +37,61 @@ class ClientQueryBuilder {
     return this
   }
 
+  neq(_column: string, _value: any) {
+    return this
+  }
+
+  gte(_column: string, _value: any) {
+    return this
+  }
+
+  lte(_column: string, _value: any) {
+    return this
+  }
+
+  ilike(_column: string, _pattern: string) {
+    return this
+  }
+
+  or(_conditions: string) {
+    return this
+  }
+
+  in(_column: string, _values: any[]) {
+    return this
+  }
+
+  is(_column: string, _value: any) {
+    return this
+  }
+
+  not(_column: string, _operator: string, _value: any) {
+    return this
+  }
+
   order(column: string, { ascending = true } = {}) {
+    this.sortColumn = column
+    this.sortAscending = ascending
+    return this
+  }
+
+  limit(n: number) {
+    this.limitValue = n
+    return this
+  }
+
+  range(_from: number, _to: number) {
     return this
   }
 
   single() {
     this.isSingle = true
-    return this.execute()
+    return this
+  }
+
+  maybeSingle() {
+    this.isSingle = true
+    return this
   }
 
   async insert(data: any) {
@@ -60,6 +111,18 @@ class ClientQueryBuilder {
     }
   }
 
+  async update(_data: any) {
+    return { data: null, error: null }
+  }
+
+  async delete() {
+    return { data: null, error: null }
+  }
+
+  async upsert(data: any) {
+    return this.insert(data)
+  }
+
   then(onfulfilled?: any, onrejected?: any) {
     return this.execute().then(onfulfilled, onrejected)
   }
@@ -72,7 +135,12 @@ class ClientQueryBuilder {
         body: JSON.stringify({
           table: this.tableName,
           action: 'select',
-          data: { fields: this.selectFields, single: this.isSingle },
+          data: {
+            fields: this.selectFields,
+            single: this.isSingle,
+            limit: this.limitValue,
+            order: this.sortColumn ? { column: this.sortColumn, ascending: this.sortAscending } : undefined
+          },
           filter: this.filters
         })
       })
@@ -85,7 +153,11 @@ class ClientQueryBuilder {
 
 export function createClient() {
   if (!isSupabaseConfigured()) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Supabase is not configured. Local DB shim is disabled in production.')
+    }
     return {
+      isShim: true,
       auth: {
         async getUser() {
           try {
@@ -106,10 +178,22 @@ export function createClient() {
         return new ClientQueryBuilder(table)
       },
       channel(name: string) {
-        return {
-          on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
-          subscribe: () => ({ unsubscribe: () => {} })
+        const fakeChannel = {
+          topic: name,
+          on: () => fakeChannel,
+          subscribe: (callback?: any) => {
+            if (typeof callback === 'function') callback('SUBSCRIBED')
+            return fakeChannel
+          },
+          unsubscribe: () => Promise.resolve('ok')
         }
+        return fakeChannel
+      },
+      removeChannel: async (channel: any) => {
+        if (channel && typeof channel.unsubscribe === 'function') {
+          channel.unsubscribe()
+        }
+        return Promise.resolve('ok')
       }
     } as any
   }
