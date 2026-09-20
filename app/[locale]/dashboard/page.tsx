@@ -1,6 +1,6 @@
 import { getUserProfile, getUserFarms } from '@/app/actions/user'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { PlusCircle, Sprout, TrendingUp, CloudSun } from 'lucide-react'
 
 export default async function DashboardPage() {

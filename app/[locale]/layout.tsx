@@ -17,7 +17,7 @@ export default async function LocaleLayout({
   
   console.log('LAYOUT RENDERED WITH LOCALE:', locale);
 
-  if (!routing.locales.includes(locale as any)) {
+  if (!(routing.locales as readonly string[]).includes(locale)) {
     notFound();
   }
 
@@ -25,7 +25,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale}>
-      <body className="antialiased min-h-screen bg-orange-50 text-emerald-950 font-sans pb-16 md:pb-0">
+      <body className="antialiased min-h-[100dvh] bg-orange-50 text-emerald-950 font-sans pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
         <NextIntlClientProvider messages={messages}>
           <Navbar />
           {children}
