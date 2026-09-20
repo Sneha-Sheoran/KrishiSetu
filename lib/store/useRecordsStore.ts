@@ -34,7 +34,7 @@ const idbStorage: StateStorage = {
   },
 }
 
-interface CropRecord {
+export interface CropRecord {
   id?: string;
   local_id: string; // Used for offline tracking before sync
   crop_name: string;
@@ -45,17 +45,43 @@ interface CropRecord {
   sync_status: 'PENDING' | 'SYNCED' | 'FAILED';
 }
 
+export interface ReceiptRecord {
+  id?: string;
+  local_id: string;
+  market: string;
+  commodity: string;
+  variety?: string;
+  quantity: number;
+  unit: string;
+  price_per_unit: number;
+  gross_amount?: number;
+  commission?: number;
+  deductions?: number;
+  net_amount: number;
+  receipt_date?: string;
+  farmer_name?: string;
+  receipt_number?: string;
+  vehicle_number?: string;
+  image_url?: string;
+  confidence?: number;
+  sync_status: 'PENDING' | 'SYNCED' | 'FAILED';
+  created_at: string;
+}
+
 interface RecordsState {
   crops: CropRecord[];
+  receipts: ReceiptRecord[];
   addCrop: (crop: Omit<CropRecord, 'sync_status' | 'local_id'>) => void;
   markCropSynced: (local_id: string, server_id: string) => void;
-  // TODO: Add Expenses and Harvests later
+  addReceipt: (receipt: Omit<ReceiptRecord, 'sync_status' | 'local_id' | 'created_at'>) => void;
+  markReceiptSynced: (local_id: string, server_id: string) => void;
 }
 
 export const useRecordsStore = create<RecordsState>()(
   persist(
     (set) => ({
       crops: [],
+      receipts: [],
       addCrop: (crop) => 
         set((state) => ({
           crops: [...state.crops, { ...crop, local_id: crypto.randomUUID(), sync_status: 'PENDING' }]
@@ -64,6 +90,24 @@ export const useRecordsStore = create<RecordsState>()(
         set((state) => ({
           crops: state.crops.map(c => 
             c.local_id === local_id ? { ...c, id: server_id, sync_status: 'SYNCED' } : c
+          )
+        })),
+      addReceipt: (receipt) =>
+        set((state) => ({
+          receipts: [
+            ...(state.receipts || []),
+            {
+              ...receipt,
+              local_id: crypto.randomUUID(),
+              sync_status: 'PENDING',
+              created_at: new Date().toISOString()
+            }
+          ]
+        })),
+      markReceiptSynced: (local_id, server_id) =>
+        set((state) => ({
+          receipts: (state.receipts || []).map(r =>
+            r.local_id === local_id ? { ...r, id: server_id, sync_status: 'SYNCED' } : r
           )
         }))
     }),
