@@ -26,7 +26,7 @@
     "getStarted": "शुरू करें",
     "myListings": "मेरी लिस्टिंग",
     "dashboard": "डैशबोर्ड",
-    "buyersWanted": "खरीदार चाहिए",
+    "buyersWanted": "खरीदार माँग",
     "close": "बंद करें",
     "toggleLanguage": "अंग्रेजी और हिन्दी के बीच भाषा बदलें",
     "toggleNavMenu": "नेविगेशन मेनू खोलें/बंद करें"
@@ -51,7 +51,7 @@
     "getStarted": "शुरू करें",
     "myListings": "मेरी लिस्टिंग",
     "dashboard": "डैशबोर्ड",
-    "buyersWanted": "खरीदार चाहिए",
+    "buyersWanted": "खरीदार माँग",
     "close": "बंद करें",
     "toggleLanguage": "अंग्रेजी और हिन्दी के बीच भाषा बदलें",
     "toggleNavMenu": "नेविगेशन मेनू खोलें/बंद करें"
@@ -118,7 +118,7 @@
     "tabSold": "बिक गया",
     "farmerNoActiveListings": "आपकी अभी तक कोई चालू लिस्टिंग नहीं है",
     "farmerNoActiveListingsDesc": "खरीदारों से पूछताछ प्राप्त करने के लिए अपनी उपज लिस्ट करें।",
-    "buyersWanted": "खरीदार चाहिए",
+    "buyersWanted": "खरीदार माँग",
     "myProduce": "मेरी उपज",
     "iCanSupply": "मैं दे सकता हूँ",
     "priceOpen": "भाव खुला",

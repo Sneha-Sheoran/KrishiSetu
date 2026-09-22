@@ -1,6 +1,6 @@
 import { Link } from '@/i18n/routing'
 import { createClient } from '@/utils/supabase/server'
-import { Tractor, LineChart, Leaf, Store, MessageCircle, User, LayoutDashboard, FileText, Sparkles } from 'lucide-react'
+import { Tractor, LineChart, Leaf, Store, MessageCircle, User, LayoutDashboard, FileText } from 'lucide-react'
 import { GuestNavbar } from '@/components/GuestNavbar'
 import MobileNav from '@/components/MobileNav'
 import { getTranslations } from 'next-intl/server'
@@ -49,7 +49,6 @@ export async function Navbar() {
                 <Link href="/advisory" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-emerald-700 flex items-center gap-2"><Leaf className="w-4 h-4"/> {t('advisory')}</Link>
                 <Link href="/records" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-emerald-700 flex items-center gap-2"><FileText className="w-4 h-4"/> {t('records')}</Link>
                 <Link href="/marketplace/my-listings" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-emerald-700 flex items-center gap-2"><Store className="w-4 h-4"/> {t('myListings')}</Link>
-                <Link href="/marketplace/wanted" className="px-3 py-2 rounded-md text-sm font-medium hover:bg-emerald-700 flex items-center gap-2"><Sparkles className="w-4 h-4"/> {t('buyersWanted')}</Link>
               </>
             )}
             

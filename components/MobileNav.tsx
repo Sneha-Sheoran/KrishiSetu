@@ -19,8 +19,7 @@ import {
   Globe,
   ChevronRight,
   ShieldCheck,
-  Package,
-  Sparkles
+  Package
 } from 'lucide-react'
 
 interface MobileNavProps {
@@ -264,20 +263,6 @@ export default function MobileNav({ role }: MobileNavProps) {
                         <Package className="w-5 h-5" />
                       </div>
                       <span>{t('myListings')}</span>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
-                  </Link>
-
-                  <Link
-                    href="/marketplace/wanted"
-                    onClick={() => setIsMoreOpen(false)}
-                    className="flex items-center justify-between py-3.5 px-2 hover:bg-emerald-50 rounded-xl transition text-gray-800 font-medium text-base min-h-[48px]"
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
-                        <Sparkles className="w-5 h-5" />
-                      </div>
-                      <span>{t('buyersWanted')}</span>
                     </div>
                     <ChevronRight className="w-5 h-5 text-gray-400" />
                   </Link>
