@@ -26,7 +26,7 @@
     "getStarted": "Get Started",
     "myListings": "My Listings",
     "dashboard": "Dashboard",
-    "buyersWanted": "Buyers Wanted",
+    "buyersWanted": "Buyers Demand",
     "close": "Close",
     "toggleLanguage": "Toggle language between English and Hindi",
     "toggleNavMenu": "Toggle Navigation Menu"
@@ -51,7 +51,7 @@
     "getStarted": "Get Started",
     "myListings": "My Listings",
     "dashboard": "Dashboard",
-    "buyersWanted": "Buyers Wanted",
+    "buyersWanted": "Buyers Demand",
     "close": "Close",
     "toggleLanguage": "Toggle language between English and Hindi",
     "toggleNavMenu": "Toggle Navigation Menu"
@@ -118,7 +118,7 @@
     "tabSold": "Sold",
     "farmerNoActiveListings": "You have no active listings yet",
     "farmerNoActiveListingsDesc": "List your produce to start receiving buyer enquiries.",
-    "buyersWanted": "Buyers Wanted",
+    "buyersWanted": "Buyers Demand",
     "myProduce": "My Produce",
     "iCanSupply": "I can supply",
     "priceOpen": "Price open",

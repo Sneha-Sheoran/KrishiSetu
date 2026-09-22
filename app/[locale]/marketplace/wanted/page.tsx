@@ -190,7 +190,7 @@ export default async function BuyersWantedPage({ params, searchParams }: PagePro
   return (
     <div className="min-h-screen bg-gray-50 pb-28 md:pb-16 pt-4 md:pt-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Segmented Switch for Farmers: My Produce | Buyers Wanted */}
+        {/* Segmented Switch for Farmers: My Produce | Buyers Demand */}
         {isFarmer && (
           <div className="mb-6 flex justify-center sm:justify-start">
             <div className="inline-flex p-1 bg-gray-200/80 rounded-2xl w-full sm:w-auto">
