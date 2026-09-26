@@ -328,5 +328,27 @@
     "farmerOnlySupply": "केवल किसान ही खरीदार की माँग का जवाब दे सकते हैं।",
     "requirementExpired": "इस माँग की समय-सीमा समाप्त हो चुकी है।",
     "requirementNotActive": "यह माँग अब सक्रिय नहीं है।"
+  },
+  "Records": {
+    "title": "कृषि रिकॉर्ड्स",
+    "subtitle": "अपनी फसलें, उपज और वित्तीय लेन-देन प्रबंधित करें।",
+    "addCrop": "फसल जोड़ें",
+    "addCropSubtitle": "बुवाई का रिकॉर्ड रखें",
+    "addHarvest": "कटाई जोड़ें",
+    "addHarvestSubtitle": "फसल उपज ट्रैक करें",
+    "recordTransaction": "लेन-देन दर्ज करें",
+    "recordTransactionSubtitle": "मैनुअल या रसीद स्कैन",
+    "pastTransactions": "पुराने लेन-देन",
+    "pastTransactionsSubtitle": "खाता-बही और इतिहास",
+    "yourCrops": "आपकी फसलें",
+    "recentHarvests": "हाल की कटाई",
+    "recentTransactions": "हाल के लेन-देन",
+    "cashFlowSummary": "नकद प्रवाह सारांश",
+    "moneyIn": "कुल आवक (कमाई)",
+    "moneyOut": "कुल खर्च (लागत)",
+    "netCashFlow": "शुद्ध कृषि नकद प्रवाह",
+    "noCrops": "अभी तक कोई फसल नहीं जोड़ी गई।",
+    "noHarvests": "अभी तक कोई कटाई रिकॉर्ड दर्ज नहीं किया गया।",
+    "noTransactions": "अभी तक कोई लेन-देन दर्ज नहीं किया गया।"
   }
 }

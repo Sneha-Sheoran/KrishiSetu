@@ -5,8 +5,13 @@ import { MessageCircle, ArrowRight, Clock, Tag } from 'lucide-react'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { getCropDisplayName } from '@/lib/constants/crops'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface ConversationListing {
+  id?: string
   crop_name?: string
+  variety?: string | null
   quantity?: number
   expected_price?: number
   unit?: string
@@ -123,6 +128,45 @@ export default async function MessagesInboxPage() {
     }
   }
 
+  // Look up listings for listing-backed conversations
+  const listingIds = Array.from(new Set(convList.map((c) => c.listing_id).filter(Boolean))) as string[]
+  let listingsMap: Record<string, ConversationListing> = {}
+  if (listingIds.length > 0) {
+    try {
+      const { data: listings } = await supabase
+        .from('marketplace_listings')
+        .select('id, crop_name, variety, quantity, expected_price, unit')
+        .in('id', listingIds)
+      if (listings && Array.isArray(listings)) {
+        listingsMap = Object.fromEntries(listings.map((l: any) => [l.id, l]))
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
+  // Single batch query: find all conversations with at least one unread message from the counterpart
+  const unreadConvIds = new Set<string>()
+  if (convIds.length > 0) {
+    try {
+      const { data: unreadMsgs } = await supabase
+        .from('messages')
+        .select('conversation_id')
+        .in('conversation_id', convIds)
+        .neq('sender_id', user.id)
+        .is('read_at', null)
+      if (unreadMsgs && Array.isArray(unreadMsgs)) {
+        for (const m of unreadMsgs) {
+          if (m.conversation_id) {
+            unreadConvIds.add(m.conversation_id)
+          }
+        }
+      }
+    } catch {
+      // Fallback
+    }
+  }
+
   return (
     <div className="p-3 md:p-6 max-w-4xl mx-auto space-y-5 md:space-y-6">
       <header className="border-b border-emerald-100 pb-3">
@@ -133,6 +177,7 @@ export default async function MessagesInboxPage() {
       <div className="space-y-3">
         {convList.length > 0 ? (
           convList.map((conv) => {
+            const hasUnread = unreadConvIds.has(conv.id)
             const buyer = buyersMap[conv.buyer_id]
             const farmer = farmersMap[conv.farmer_id]
             const counterpartText = profile?.role === 'BUYER'
@@ -146,25 +191,52 @@ export default async function MessagesInboxPage() {
 
             const isRequirement = Boolean(conv.requirement_id)
             const req = conv.requirement_id ? requirementsMap[conv.requirement_id] : null
-            const rawCropName = isRequirement ? req?.crop : conv.marketplace_listings?.crop_name
-            const cropName = rawCropName ? getCropDisplayName(rawCropName, locale) : (isRequirement ? t('buyerRequest') : t('produceListing'))
-            const rawUnit = isRequirement ? req?.unit : conv.marketplace_listings?.unit
+            const listing = conv.listing_id ? (listingsMap[conv.listing_id] || conv.marketplace_listings) : conv.marketplace_listings
+            const rawCropName = isRequirement ? req?.crop : listing?.crop_name
+            const variety = isRequirement ? null : listing?.variety
+            let cropName = rawCropName ? getCropDisplayName(rawCropName, locale) : (isRequirement ? t('buyerRequest') : t('produceListing'))
+            if (!isRequirement && rawCropName && variety) {
+              cropName = `${cropName} (${variety})`
+            }
+            const rawUnit = isRequirement ? req?.unit : listing?.unit
             const unitLabel = rawUnit && tUnits.has(rawUnit as any) ? tUnits(rawUnit as any) : rawUnit
 
             return (
               <Link
                 key={conv.id}
                 href={`/messages/${conv.id}`}
-                className="block bg-white p-4 md:p-5 rounded-2xl border border-emerald-100 shadow-sm hover:border-emerald-300 hover:shadow-md transition group min-h-[64px]"
+                className={`block p-4 md:p-5 rounded-2xl border transition group min-h-[64px] ${
+                  hasUnread
+                    ? 'bg-emerald-50/60 border-emerald-300 shadow-sm hover:border-emerald-400 hover:shadow-md ring-1 ring-emerald-400/30'
+                    : 'bg-white border-emerald-100 shadow-sm hover:border-emerald-300 hover:shadow-md'
+                }`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3.5 min-w-0">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center flex-shrink-0">
-                      <MessageCircle className="w-6 h-6" />
+                    <div className="relative flex-shrink-0">
+                      <div
+                        className={`w-12 h-12 rounded-2xl flex items-center justify-center transition ${
+                          hasUnread
+                            ? 'bg-emerald-600 text-white shadow-sm'
+                            : 'bg-emerald-100 text-emerald-800'
+                        }`}
+                      >
+                        <MessageCircle className="w-6 h-6" />
+                      </div>
+                      {hasUnread && (
+                        <span
+                          data-testid={`unread-dot-conv-${conv.id}`}
+                          className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-amber-500 rounded-full ring-2 ring-white shadow-sm"
+                        />
+                      )}
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-base md:text-lg font-black text-emerald-950 truncate">
+                        <h3
+                          className={`text-base md:text-lg truncate ${
+                            hasUnread ? 'font-black text-emerald-950' : 'font-extrabold text-emerald-900/90'
+                          }`}
+                        >
                           {cropName}
                         </h3>
                         {isRequirement && (
@@ -184,9 +256,9 @@ export default async function MessagesInboxPage() {
                           <span className="font-semibold text-emerald-900">
                             {req.required_quantity} {unitLabel} • {req.target_price && req.target_price > 0 ? `₹${req.target_price.toLocaleString('en-IN')}` : t('priceOpen')}
                           </span>
-                        ) : conv.marketplace_listings?.quantity !== undefined ? (
+                        ) : listing?.quantity !== undefined ? (
                           <span className="font-semibold text-emerald-900">
-                            {conv.marketplace_listings.quantity} {unitLabel} @ ₹{conv.marketplace_listings.expected_price?.toLocaleString('en-IN')}
+                            {listing.quantity} {unitLabel} @ ₹{listing.expected_price?.toLocaleString('en-IN')}
                           </span>
                         ) : null}
                         <span className="text-gray-300">•</span>
@@ -195,7 +267,13 @@ export default async function MessagesInboxPage() {
                         </span>
                       </div>
                       {lastMsg?.message && (
-                        <p className="text-xs text-gray-500 line-clamp-1 italic mt-1">
+                        <p
+                          className={`text-xs line-clamp-1 mt-1 ${
+                            hasUnread
+                              ? 'font-bold text-emerald-950 not-italic'
+                              : 'text-gray-500 italic'
+                          }`}
+                        >
                           &quot;{lastMsg.message}&quot;
                         </p>
                       )}
@@ -203,11 +281,26 @@ export default async function MessagesInboxPage() {
                   </div>
 
                   <div className="flex flex-col items-end justify-between flex-shrink-0 gap-2">
-                    <span className="text-[11px] text-gray-400 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {new Date(timestamp).toLocaleDateString()}
-                    </span>
-                    <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition" />
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`text-[11px] flex items-center gap-1 ${
+                          hasUnread ? 'font-bold text-emerald-800' : 'text-gray-400'
+                        }`}
+                      >
+                        <Clock className="w-3 h-3" />
+                        {new Date(timestamp).toLocaleDateString()}
+                      </span>
+                      {hasUnread && (
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-500 ring-2 ring-white flex-shrink-0" />
+                      )}
+                    </div>
+                    <ArrowRight
+                      className={`w-5 h-5 transition ${
+                        hasUnread
+                          ? 'text-emerald-700 font-bold group-hover:translate-x-0.5'
+                          : 'text-gray-300 group-hover:text-emerald-600 group-hover:translate-x-0.5'
+                      }`}
+                    />
                   </div>
                 </div>
               </Link>
