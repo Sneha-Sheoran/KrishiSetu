@@ -25,9 +25,10 @@ import {
 interface MobileNavProps {
   role?: string | null
   userName?: string | null
+  hasUnreadMessages?: boolean
 }
 
-export default function MobileNav({ role }: MobileNavProps) {
+export default function MobileNav({ role, hasUnreadMessages }: MobileNavProps) {
   const t = useTranslations('Nav')
   const pathname = usePathname()
   const router = useRouter()
@@ -149,7 +150,15 @@ export default function MobileNav({ role }: MobileNavProps) {
                   isMessagesActive ? 'text-emerald-700 font-bold' : 'hover:text-emerald-700'
                 }`}
               >
-                <MessageCircle className="w-5 h-5 mb-1" />
+                <div className="relative flex items-center justify-center">
+                  <MessageCircle className="w-5 h-5 mb-1" />
+                  {hasUnreadMessages && (
+                    <span
+                      data-testid="unread-dot-mobile-admin"
+                      className="absolute -top-0.5 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full ring-2 ring-white"
+                    />
+                  )}
+                </div>
                 <span className="text-xs font-medium">{t('messages')}</span>
               </Link>
             </div>
@@ -201,7 +210,15 @@ export default function MobileNav({ role }: MobileNavProps) {
                   isMessagesActive ? 'text-emerald-700 font-bold' : 'hover:text-emerald-700'
                 }`}
               >
-                <MessageCircle className="w-5 h-5 mb-0.5" />
+                <div className="relative flex items-center justify-center">
+                  <MessageCircle className="w-5 h-5 mb-0.5" />
+                  {hasUnreadMessages && (
+                    <span
+                      data-testid="unread-dot-mobile"
+                      className="absolute -top-0.5 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full ring-2 ring-white"
+                    />
+                  )}
+                </div>
                 <span className="text-xs font-medium">{t('messages')}</span>
               </Link>
 

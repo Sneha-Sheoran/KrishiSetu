@@ -76,17 +76,46 @@ export interface LocalBuyerRequirement {
   created_at: string
 }
 
-export interface LocalTransaction {
+export interface LocalCrop {
   id: string
-  farmer_id?: string | null
-  buyer_id?: string | null
-  listing_id?: string | null
-  crop: string
+  farm_id?: string | null
+  farmer_id: string
+  crop_name: string
+  variety?: string | null
+  season?: string | null
+  sowing_date?: string | null
+  expected_harvest_date?: string | null
+  actual_harvest_date?: string | null
+  area?: number | null
+  expected_yield?: number | null
+  actual_yield?: number | null
+  status: 'PLANTED' | 'HARVESTED' | 'FAILED'
+  created_at: string
+}
+
+export interface LocalHarvest {
+  id: string
+  farmer_id: string
+  crop_id: string
+  harvest_date: string
   quantity: number
   unit: string
-  agreed_price: number
-  total_amount: number
-  status: 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'CANCELLED'
+  quality_grade?: string | null
+  created_at: string
+}
+
+export interface LocalTransaction {
+  id: string
+  farmer_id: string
+  direction: 'IN' | 'OUT'
+  amount: number
+  category: string
+  transaction_date: string
+  description?: string | null
+  related_crop_id?: string | null
+  receipt_image_url?: string | null
+  source: 'manual' | 'ocr'
+  ocr_metadata?: any | null
   created_at: string
 }
 
@@ -98,7 +127,10 @@ export interface LocalDbData {
   conversations: any[]
   messages: any[]
   buyer_requirements: LocalBuyerRequirement[]
-  transactions: LocalTransaction[]
+  transactions: any[]
+  farm_transactions: LocalTransaction[]
+  crops: LocalCrop[]
+  harvests: LocalHarvest[]
 }
 
 const DB_DIR = path.join(process.cwd(), 'data')
@@ -201,7 +233,10 @@ const INITIAL_DATA: LocalDbData = {
   conversations: [],
   messages: [],
   buyer_requirements: [],
-  transactions: []
+  transactions: [],
+  farm_transactions: [],
+  crops: [],
+  harvests: []
 }
 
 let memoryDb: LocalDbData = { ...INITIAL_DATA }
@@ -222,6 +257,15 @@ export function getLocalDb(): LocalDbData {
     }
     if (!Array.isArray(parsed.transactions)) {
       parsed.transactions = []
+    }
+    if (!Array.isArray(parsed.farm_transactions)) {
+      parsed.farm_transactions = []
+    }
+    if (!Array.isArray(parsed.crops)) {
+      parsed.crops = []
+    }
+    if (!Array.isArray(parsed.harvests)) {
+      parsed.harvests = []
     }
     if (!Array.isArray(parsed.conversations)) {
       parsed.conversations = []
@@ -807,3 +851,76 @@ export function createLocalServerClient(cookieStore: any) {
     }
   }
 }
+
+// -------------------------------------------------------------
+// Helper functions for Farm Records (Crops, Harvests, Transactions)
+// -------------------------------------------------------------
+
+export function getCropsByFarmer(farmerId: string): LocalCrop[] {
+  const db = getLocalDb()
+  return (db.crops || [])
+    .filter((c) => String(c.farmer_id) === String(farmerId))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+}
+
+export function addCropForFarmer(crop: Omit<LocalCrop, 'id' | 'created_at'>): LocalCrop {
+  const db = getLocalDb()
+  const newCrop: LocalCrop = {
+    id: crypto.randomUUID(),
+    created_at: new Date().toISOString(),
+    ...crop,
+    status: crop.status || 'PLANTED'
+  }
+  if (!Array.isArray(db.crops)) {
+    db.crops = []
+  }
+  db.crops.unshift(newCrop)
+  saveLocalDb(db)
+  return newCrop
+}
+
+export function getHarvestsByFarmer(farmerId: string): LocalHarvest[] {
+  const db = getLocalDb()
+  return (db.harvests || [])
+    .filter((h) => String(h.farmer_id) === String(farmerId))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+}
+
+export function addHarvestForFarmer(harvest: Omit<LocalHarvest, 'id' | 'created_at'>): LocalHarvest {
+  const db = getLocalDb()
+  const newHarvest: LocalHarvest = {
+    id: crypto.randomUUID(),
+    created_at: new Date().toISOString(),
+    ...harvest
+  }
+  if (!Array.isArray(db.harvests)) {
+    db.harvests = []
+  }
+  db.harvests.unshift(newHarvest)
+  saveLocalDb(db)
+  return newHarvest
+}
+
+export function getTransactionsByFarmer(farmerId: string): LocalTransaction[] {
+  const db = getLocalDb()
+  const txList = (db.farm_transactions && db.farm_transactions.length > 0) ? db.farm_transactions : (db.transactions || [])
+  return txList
+    .filter((t: any) => String(t.farmer_id) === String(farmerId) && t.direction)
+    .sort((a: any, b: any) => new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime() || new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+}
+
+export function addTransactionForFarmer(tx: Omit<LocalTransaction, 'id' | 'created_at'>): LocalTransaction {
+  const db = getLocalDb()
+  const newTx: LocalTransaction = {
+    id: crypto.randomUUID(),
+    created_at: new Date().toISOString(),
+    ...tx
+  }
+  if (!Array.isArray(db.farm_transactions)) {
+    db.farm_transactions = []
+  }
+  db.farm_transactions.unshift(newTx)
+  saveLocalDb(db)
+  return newTx
+}
+

@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient, isSupabaseConfigured } from '@/utils/supabase/client'
 import { Send, ArrowLeft, Tag } from 'lucide-react'
-import { Link } from '@/i18n/routing'
+import { Link, useRouter } from '@/i18n/routing'
 import { useTranslations, useLocale } from 'next-intl'
 import { getCropDisplayName } from '@/lib/constants/crops'
+import { markConversationAsRead } from '@/app/actions/messages'
 
 interface MessageItem {
   id?: string
@@ -13,6 +14,7 @@ interface MessageItem {
   sender_id: string
   message: string
   created_at: string
+  read_at?: string | null
 }
 
 interface CounterpartBuyer {
@@ -28,6 +30,7 @@ interface CounterpartFarmer {
 
 interface ListingDetails {
   crop_name?: string
+  variety?: string | null
   quantity?: number
   expected_price?: number
   unit?: string
@@ -56,10 +59,12 @@ export default function MessagingPage({ params }: { params: Promise<{ id: string
   const t = useTranslations('Messages')
   const tUnits = useTranslations('Units')
   const locale = useLocale()
+  const router = useRouter()
 
   const [messages, setMessages] = useState<MessageItem[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
+  const userIdRef = useRef<string | null>(null)
   const [conversation, setConversation] = useState<ConversationDetails | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [convId, setConvId] = useState<string>('')
@@ -74,7 +79,19 @@ export default function MessagingPage({ params }: { params: Promise<{ id: string
 
     const setup = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      if (user) setUserId(user.id)
+      if (user) {
+        userIdRef.current = user.id
+        setUserId(user.id)
+        // Mark all unread incoming messages from the counterpart as read via Server Action
+        try {
+          const res = await markConversationAsRead(convId)
+          if (res?.success && (res.updatedCount ?? 0) > 0) {
+            router.refresh()
+          }
+        } catch (err) {
+          console.warn('Could not mark conversation as read on load:', err)
+        }
+      }
 
       // Fetch initial messages
       const { data: msgs } = await supabase
@@ -130,11 +147,24 @@ export default function MessagingPage({ params }: { params: Promise<{ id: string
           } catch {}
         }
 
+        let listingDetails: ListingDetails | null = (conv.marketplace_listings as ListingDetails) || null
+        if (conv.listing_id && (!listingDetails || !listingDetails.crop_name)) {
+          try {
+            const { data: listing } = await supabase
+              .from('marketplace_listings')
+              .select('id, crop_name, variety, quantity, expected_price, unit')
+              .eq('id', conv.listing_id)
+              .single()
+            if (listing) listingDetails = listing as ListingDetails
+          } catch {}
+        }
+
         setConversation({
           ...conv,
           buyer: buyerProfile,
           farmer: farmerProfile,
-          requirement: requirementDetails
+          requirement: requirementDetails,
+          marketplace_listings: listingDetails
         })
       }
     }
@@ -154,6 +184,16 @@ export default function MessagingPage({ params }: { params: Promise<{ id: string
         },
         (payload: { new: MessageItem }) => {
           setMessages((current) => [...current, payload.new])
+          const currentUid = userIdRef.current
+          if (currentUid && payload.new.sender_id !== currentUid) {
+            markConversationAsRead(convId)
+              .then((res) => {
+                if (res?.success && (res.updatedCount ?? 0) > 0) {
+                  router.refresh()
+                }
+              })
+              .catch((err) => console.warn('Could not mark realtime message as read:', err))
+          }
         }
       )
       .subscribe()
@@ -172,6 +212,22 @@ export default function MessagingPage({ params }: { params: Promise<{ id: string
 
         if (msgs) {
           setMessages(msgs as MessageItem[])
+          const currentUid = userIdRef.current
+          if (currentUid) {
+            const hasUnread = (msgs as any[]).some(
+              (m) => m.sender_id !== currentUid && !m.read_at
+            )
+            if (hasUnread) {
+              try {
+                const res = await markConversationAsRead(convId)
+                if (res?.success && (res.updatedCount ?? 0) > 0) {
+                  router.refresh()
+                }
+              } catch (err) {
+                console.warn('Could not mark polled messages as read:', err)
+              }
+            }
+          }
         }
       }, 3000)
     }
@@ -213,7 +269,11 @@ export default function MessagingPage({ params }: { params: Promise<{ id: string
   const isVerified = conversation.buyer?.verification_status === 'VERIFIED' || conversation.farmer?.verification_status === 'VERIFIED'
   const isRequirement = Boolean(conversation.requirement_id)
   const rawCrop = isRequirement ? conversation.requirement?.crop : conversation.marketplace_listings?.crop_name
-  const cropTitle = rawCrop ? getCropDisplayName(rawCrop, locale) : (isRequirement ? t('buyerRequest') : t('produceListing'))
+  const variety = isRequirement ? null : conversation.marketplace_listings?.variety
+  let cropTitle = rawCrop ? getCropDisplayName(rawCrop, locale) : (isRequirement ? t('buyerRequest') : t('produceListing'))
+  if (!isRequirement && rawCrop && variety) {
+    cropTitle = `${cropTitle} (${variety})`
+  }
   const rawUnit = isRequirement ? conversation.requirement?.unit : conversation.marketplace_listings?.unit
   const unitLabel = rawUnit && tUnits.has(rawUnit as any) ? tUnits(rawUnit as any) : rawUnit
 

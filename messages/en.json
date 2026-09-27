@@ -328,5 +328,27 @@
     "farmerOnlySupply": "Only farmers can respond to buyer requirements.",
     "requirementExpired": "This requirement has expired.",
     "requirementNotActive": "This requirement is no longer active."
+  },
+  "Records": {
+    "title": "Farm Records",
+    "subtitle": "Manage your crops, harvests, and financial transactions.",
+    "addCrop": "Add Crop",
+    "addCropSubtitle": "Record plantings",
+    "addHarvest": "Add Harvest",
+    "addHarvestSubtitle": "Track crop yields",
+    "recordTransaction": "Record Transaction",
+    "recordTransactionSubtitle": "Manual entry or OCR",
+    "pastTransactions": "Past Transactions",
+    "pastTransactionsSubtitle": "Ledger & history",
+    "yourCrops": "Your Crops",
+    "recentHarvests": "Recent Harvests",
+    "recentTransactions": "Recent Transactions",
+    "cashFlowSummary": "Cash Flow Summary",
+    "moneyIn": "Total Money In",
+    "moneyOut": "Total Money Out",
+    "netCashFlow": "Net Farm Cash Flow",
+    "noCrops": "No crops added yet.",
+    "noHarvests": "No harvest records logged yet.",
+    "noTransactions": "No transactions recorded yet."
   }
 }

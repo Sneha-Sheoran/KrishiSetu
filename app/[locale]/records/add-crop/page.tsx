@@ -1,68 +1,100 @@
 'use client'
 
 import { useState } from 'react'
-import { useRecordsStore } from '@/lib/store/useRecordsStore'
 import { useRouter } from '@/i18n/routing'
-import { Sprout } from 'lucide-react'
+import { Link } from '@/i18n/routing'
+import { Sprout, ArrowLeft, AlertCircle } from 'lucide-react'
+import { addCrop } from '@/app/actions/records'
 
 export default function AddCropPage() {
   const router = useRouter()
-  const { addCrop } = useRecordsStore()
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
-    
+    setError(null)
+
     const formData = new FormData(e.currentTarget)
-    
-    // Add locally to Zustand store (which persists to IndexedDB)
-    addCrop({
-      crop_name: formData.get('crop_name') as string,
-      variety: formData.get('variety') as string,
-      area: parseFloat(formData.get('area') as string),
-      sowing_date: formData.get('sowing_date') as string,
-      status: 'PLANTED'
-    })
+    const result = await addCrop(formData)
 
-    // TODO: Trigger background sync queue here
-
-    // Navigate back to records dashboard
-    router.push('/records')
+    if (result?.error) {
+      setError(result.error)
+      setLoading(false)
+    } else {
+      router.push('/records')
+    }
   }
 
   return (
     <div className="min-h-screen bg-orange-50 p-4 md:p-8">
       <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-emerald-100 overflow-hidden">
-        <div className="bg-emerald-800 p-6 text-white">
-          <div className="flex items-center gap-3 mb-2">
-            <Sprout className="w-6 h-6 text-emerald-300" />
-            <h1 className="text-2xl font-bold">Add New Crop</h1>
+        <div className="bg-emerald-800 p-6 text-white flex items-center gap-4">
+          <Link href="/records" className="p-2 hover:bg-emerald-700 rounded-xl transition">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-3">
+              <Sprout className="w-6 h-6 text-emerald-300" />
+              <h1 className="text-2xl font-bold">Add New Crop</h1>
+            </div>
+            <p className="text-emerald-100 text-sm mt-1">Record a new crop planting in your farm records.</p>
           </div>
-          <p className="text-emerald-100">Record a new crop planting. This will be saved offline and synced automatically.</p>
         </div>
 
         <div className="p-6 md:p-8">
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3 text-sm">
+              <AlertCircle className="w-5 h-5 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-emerald-900 mb-1">Crop Name</label>
-                <input name="crop_name" type="text" required placeholder="e.g. Tomato" className="w-full p-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <label className="block text-sm font-medium text-emerald-900 mb-1">Crop Name *</label>
+                <input
+                  name="crop_name"
+                  type="text"
+                  required
+                  placeholder="e.g. Wheat, Tomato, Soybean"
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
               </div>
-              
+
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-emerald-900 mb-1">Variety</label>
-                <input name="variety" type="text" placeholder="e.g. Roma" className="w-full p-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <input
+                  name="variety"
+                  type="text"
+                  placeholder="e.g. Sharbati, Desi, Hybrid"
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-emerald-900 mb-1">Area</label>
-                <input name="area" type="number" step="0.01" required placeholder="Area planted" className="w-full p-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <label className="block text-sm font-medium text-emerald-900 mb-1">Area (Acres / Bigha)</label>
+                <input
+                  name="area"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="e.g. 2.5"
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-emerald-900 mb-1">Sowing Date</label>
-                <input name="sowing_date" type="date" required className="w-full p-3 rounded-xl border focus:ring-2 focus:ring-emerald-500 outline-none" />
+                <label className="block text-sm font-medium text-emerald-900 mb-1">Sowing Date *</label>
+                <input
+                  name="sowing_date"
+                  type="date"
+                  required
+                  defaultValue={new Date().toISOString().split('T')[0]}
+                  className="w-full p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
               </div>
             </div>
 
