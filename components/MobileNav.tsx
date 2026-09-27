@@ -60,6 +60,8 @@ export default function MobileNav({ role }: MobileNavProps) {
 
   // Check if we are inside a specific chat conversation (/messages/[id])
   const isChatRoom = pathname.startsWith('/messages/') && pathname !== '/messages'
+  const isFormRoute = pathname === '/marketplace/create' || pathname.includes('/edit') || pathname === '/buyer/requirements/new' || pathname.includes('/add-crop')
+  const hideBottomNav = isChatRoom || isFormRoute
 
   // Check if current route matches tab
   const isHomeActive = isFarmer
@@ -108,8 +110,8 @@ export default function MobileNav({ role }: MobileNavProps) {
         </div>
       </div>
 
-      {/* Mobile Bottom Navigation Bar (Hidden on chat room /messages/[id]) */}
-      {!isChatRoom && (
+      {/* Mobile Bottom Navigation Bar (Hidden on forms and chat rooms) */}
+      {!hideBottomNav && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 text-gray-500 z-40 pb-[env(safe-area-inset-bottom)] shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
           {isAdmin ? (
             /* Admin: Pre-mobile-redesign bar maintained with Home -> /admin */

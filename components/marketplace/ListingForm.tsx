@@ -331,7 +331,7 @@ export default function ListingForm({ isEdit = false, listingId, initialData }: 
             </div>
 
             {/* Mobile Sticky Bottom Save Button */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 p-3 px-4 bg-white/95 backdrop-blur-md border-t border-gray-200 z-30 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-lg flex items-center gap-2">
+            <div className="md:hidden fixed bottom-0 left-0 right-0 p-3 px-4 bg-white/95 backdrop-blur-md border-t border-gray-200 z-30 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-4px_10px_rgba(0,0,0,0.05)] flex items-center gap-2">
               <Link
                 href="/marketplace/my-listings"
                 className="w-1/3 h-12 rounded-xl border border-gray-300 font-bold text-gray-700 hover:bg-gray-50 transition text-sm flex items-center justify-center"
